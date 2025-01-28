@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import br.com.gabriel.contact_list.dtos.CreateContactDto;
 import br.com.gabriel.contact_list.dtos.UpdateContactDto;
 import br.com.gabriel.contact_list.entitites.Contact;
+import br.com.gabriel.contact_list.exceptions.NoContactsFoundException;
 import br.com.gabriel.contact_list.repositories.ContactRepository;
 
 @Service
@@ -16,6 +17,13 @@ public class ContactService {
 	private ContactRepository contactRepository;
 	
 	public Contact createContact(CreateContactDto createContactDto) {
+		if (createContactDto.name() == null || createContactDto.name().isEmpty()) {
+	        throw new IllegalArgumentException("Name cannot be empty");
+		}
+
+	    if (createContactDto.telephoneNumber() == null || createContactDto.telephoneNumber().isEmpty()) {
+	        throw new IllegalArgumentException("Telephone number cannot be empty");
+	    }
 		var entity = new Contact(
 				createContactDto.name(), 
 				createContactDto.imageUrl(),
@@ -29,7 +37,7 @@ public class ContactService {
 	public List<Contact> getAllContacts() {
 		var contacts = contactRepository.findAll();
 		if(contacts.isEmpty()) {
-			return null;
+			throw new NoContactsFoundException("No contacts found");
 		}else{
 			return contacts;
 		}
