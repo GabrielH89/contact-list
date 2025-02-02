@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import br.com.gabriel.contact_list.dtos.CreateContactDto;
 import br.com.gabriel.contact_list.dtos.UpdateContactDto;
 import br.com.gabriel.contact_list.entitites.Contact;
+import br.com.gabriel.contact_list.exceptions.NoContactByIdNotFoundException;
 import br.com.gabriel.contact_list.exceptions.NoContactsFoundException;
 import br.com.gabriel.contact_list.repositories.ContactRepository;
 
@@ -48,14 +49,14 @@ public class ContactService {
 		if(contact.isPresent()) {
 			return contact.get();
 		}else{
-			return null;
+			throw new NoContactByIdNotFoundException("Contact not found");
 		}
 	}
 	
 	public List<Contact> deleteAllContacts() {
 		var contacts = contactRepository.findAll();
 		if(contacts.isEmpty()) {
-			return null;
+			throw new NoContactsFoundException("No contacts found");
 		}else{
 			contactRepository.deleteAll();
 			return contactRepository.findAll();
@@ -68,7 +69,7 @@ public class ContactService {
 	        contactRepository.deleteById(id_contact); 
 	        return contact.get();  
 	    } else {
-	        return null; 
+	        throw new NoContactByIdNotFoundException("Contact no found to delete"); 
 	    }
 	}
 	
@@ -77,22 +78,22 @@ public class ContactService {
 		if(contactExists.isPresent()) {
 			var contact = contactExists.get();
 			
-			if(updateContactDto.name() != null) {
-				contact.setName(updateContactDto.name());
+			if(updateContactDto.name() == null || updateContactDto.name().isEmpty()) {
+				throw new IllegalArgumentException("Name cannot be empty");
 			}
-			if (updateContactDto.imageUrl() != null) {
-	            contact.setImageUrl(updateContactDto.imageUrl());
+			
+	        if (updateContactDto.telephoneNumber() == null || updateContactDto.telephoneNumber().isEmpty()) {
+	        	throw new IllegalArgumentException("Telephone cannot be empty");
 	        }
-	        if (updateContactDto.telephoneNumber() != null) {
-	            contact.setTelephoneNumber(updateContactDto.telephoneNumber());
-	        }
-	        if (updateContactDto.contactDescription() != null) {
-	            contact.setContactDescription(updateContactDto.contactDescription());
-	        }
+	        
+	        contact.setName(updateContactDto.name());
+	        contact.setImageUrl(updateContactDto.imageUrl());
+	        contact.setTelephoneNumber(updateContactDto.telephoneNumber());
+	        contact.setContactDescription(updateContactDto.contactDescription());
 	        
 			return contactRepository.save(contact);
 		}else{
-			return null;
+			throw new NoContactByIdNotFoundException("Contact not found with this id");
 		}
 	}
 }

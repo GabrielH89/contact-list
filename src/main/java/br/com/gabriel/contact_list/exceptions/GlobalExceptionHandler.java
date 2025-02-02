@@ -17,4 +17,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleNoContactsFound(NoContactsFoundException ex) {
     	return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
+    
+    @ExceptionHandler(NoContactByIdNotFoundException.class)
+    public ResponseEntity<String> handleNoContactsFound(NoContactByIdNotFoundException ex) {
+    	return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
 }
