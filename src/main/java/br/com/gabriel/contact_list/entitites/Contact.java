@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -25,7 +27,11 @@ public class Contact {
 
     @Column(name = "contact_description", columnDefinition = "TEXT") 
     private String contactDescription;
-
+    
+    @ManyToOne
+    @JoinColumn(name = "id_user", nullable = false)
+    private User user;
+    
     public Contact() {
     	
     }
