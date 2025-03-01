@@ -44,7 +44,7 @@ public class UserServiceTest {
 		@Test
 		@DisplayName("It should create a contact with success")
 		void shouldCreateContact() {
-			var input = new CreateContactDto("username", "imageUrl", "8193673536", "This is a description");
+			var input = new CreateContactDto("username", "imageUrl", "8193673536", "This is a description", 1L);
 			var expectedContact = new Contact("username", "imageUrl", "8193673536", "This is a description");
 			
 			when(contactRepository.save(any(Contact.class))).thenReturn(expectedContact);
@@ -61,7 +61,7 @@ public class UserServiceTest {
 		@Test
 		@DisplayName("It should throw IllegalArgumentException when required inputs are empty")
 		void shouldTryCreateContactWithRequiredEmptyInputs() {
-			var input = new CreateContactDto("", "imageUrl", "", "This is a description");
+			var input = new CreateContactDto("", "imageUrl", "", "This is a description", 1L);
 			
 			assertThrows(IllegalArgumentException.class, () -> {
 				contactService.createContact(input);
@@ -71,7 +71,7 @@ public class UserServiceTest {
 		@Test
 		@DisplayName("It should create a contact with success, even tough not required inputs are empty")
 		void shouldCreateContactWithNotRequiredEmptyInputs() {
-			var input = new CreateContactDto("Username", "", "829383636", "");
+			var input = new CreateContactDto("Username", "", "829383636", "", 1L);
 			
 			var expectedContact = new Contact("username", "", "8193673536", "");
 			

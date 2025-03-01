@@ -82,5 +82,13 @@ public class Contact {
 	public void setContactDescription(String contactDescription) {
 		this.contactDescription = contactDescription;
 	}
-    
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+	
   }
