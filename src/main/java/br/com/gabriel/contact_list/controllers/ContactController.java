@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.gabriel.contact_list.dtos.CreateContactDto;
+import br.com.gabriel.contact_list.dtos.ShowContactDto;
 import br.com.gabriel.contact_list.dtos.UpdateContactDto;
 import br.com.gabriel.contact_list.entitites.Contact;
 import br.com.gabriel.contact_list.services.ContactService;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/contacts")
@@ -26,15 +28,15 @@ public class ContactController {
 	@Autowired
 	private ContactService contactService;
 	
-	@PostMapping
-	public ResponseEntity<Contact> create(@RequestBody CreateContactDto createContactDto) {
-		Contact createdContact = contactService.createContact(createContactDto);
-		return ResponseEntity.status(HttpStatus.CREATED).body(createdContact);
-	}
+	 @PostMapping
+	 public ResponseEntity<ShowContactDto> createContact(@RequestBody CreateContactDto createContactDto, HttpServletRequest request) {
+        ShowContactDto contact = contactService.createContact(createContactDto, request);
+        return new ResponseEntity<>(contact, HttpStatus.CREATED);
+	 }
 	
 	@GetMapping
-	public ResponseEntity<List<Contact>> getAll() {
-		List<Contact> contacts = contactService.getAllContacts();
+	public ResponseEntity<List<ShowContactDto>> getAll() {
+		List<ShowContactDto> contacts = contactService.getAllContacts();
 		if(contacts.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}else {
@@ -43,8 +45,8 @@ public class ContactController {
 	}
 	
 	@GetMapping("/{id_contact}")
-	public ResponseEntity<Contact> getById(@PathVariable long id_contact) {
-		Contact contact = contactService.getContactById(id_contact);
+	public ResponseEntity<ShowContactDto> getById(@PathVariable long id_contact) {
+		ShowContactDto contact = contactService.getContactById(id_contact);
 		return ResponseEntity.status(HttpStatus.OK).body(contact);
 	}
 	
@@ -69,8 +71,8 @@ public class ContactController {
 	}
 	
 	@PutMapping("/{id_contact}") 
-	public ResponseEntity<Contact> updateById(@RequestBody UpdateContactDto updateContactDto, @PathVariable long id_contact) {
-		Contact updatedContact = contactService.updateContactById(id_contact, updateContactDto);
+	public ResponseEntity<ShowContactDto> updateById(@RequestBody UpdateContactDto updateContactDto, @PathVariable long id_contact) {
+		ShowContactDto updatedContact = contactService.updateContactById(id_contact, updateContactDto);
 		
 		if (updatedContact == null) {
 	        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

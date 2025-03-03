@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import br.com.gabriel.contact_list.entitites.User;
 import br.com.gabriel.contact_list.repositories.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -35,6 +36,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 	        if (user != null) {
 	            var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
 	            SecurityContextHolder.getContext().setAuthentication(authentication);
+	            request.setAttribute("userId", ((User) user).getId_user());
 	            System.out.println("Usuário autenticado: " + user.getUsername());
 	        } else {
 	            System.out.println("Usuário não encontrado no banco de dados.");

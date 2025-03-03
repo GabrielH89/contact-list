@@ -3,6 +3,8 @@ package br.com.gabriel.contact_list.entitites;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,6 +30,7 @@ public class User implements UserDetails {
 	@Column(unique = true, nullable = false)
 	private String email;
 	
+	@JsonIgnore
 	private String password;
 	
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
