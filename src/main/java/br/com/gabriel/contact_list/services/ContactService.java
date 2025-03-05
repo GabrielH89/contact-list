@@ -96,44 +96,50 @@ public class ContactService {
 		}
 	}
 	
-	public Contact deleteContactId(long id_contact) {
-	    var contact = contactRepository.findById(id_contact);
-	    if (contact.isPresent()) {  
-	        contactRepository.deleteById(id_contact); 
-	        return contact.get();  
-	    } else {
-	        throw new NoContactByIdNotFoundException("Contact no found to delete"); 
+	public void deleteContactId(long id_contact, HttpServletRequest request) {
+	    long userId = (Long) request.getAttribute("userId");
+	    var contact = contactRepository.findById(id_contact)
+	        .orElseThrow(() -> new NoContactByIdNotFoundException("Contact not found"));
+
+	    if (contact.getUser().getId_user() != userId) {
+	        throw new SecurityException("You are not authorized to delete this contact");
 	    }
+
+	    contactRepository.deleteById(id_contact);
 	}
 	
-	public ShowContactDto updateContactById(long id_contact, UpdateContactDto updateContactDto) {
-		var contactExists = contactRepository.findById(id_contact);
-		if(contactExists.isPresent()) {
-			var contact = contactExists.get();
-			
-			if(updateContactDto.name() == null || updateContactDto.name().isEmpty()) {
-				throw new IllegalArgumentException("Name cannot be empty");
-			}
-			
-	        if (updateContactDto.telephoneNumber() == null || updateContactDto.telephoneNumber().isEmpty()) {
-	        	throw new IllegalArgumentException("Telephone cannot be empty");
-	        }
-	        
-	        contact.setName(updateContactDto.name());
-	        contact.setImageUrl(updateContactDto.imageUrl());
-	        contact.setTelephoneNumber(updateContactDto.telephoneNumber());
-	        contact.setContactDescription(updateContactDto.contactDescription());
-	        
-	        contact = contactRepository.save(contact);
-	        
-			return new ShowContactDto(
-					contact.getId_contact(), 
-					contact.getName(), 
-					contact.getImageUrl(), 
-					contact.getTelephoneNumber(), 
-					contact.getContactDescription());
-		}else{
-			throw new NoContactByIdNotFoundException("Contact not found with this id");
-		}
+	public ShowContactDto updateContactById(long id_contact, UpdateContactDto updateContactDto, HttpServletRequest request) {
+	    long userId = (Long) request.getAttribute("userId");
+	    var contact = contactRepository.findById(id_contact)
+	        .orElseThrow(() -> new NoContactByIdNotFoundException("Contact not found"));
+
+	    if (contact.getUser().getId_user() != userId) {
+	        throw new SecurityException("You are not authorized to update this contact");
+	    }
+
+	    // Validações
+	    if (updateContactDto.name() == null || updateContactDto.name().isEmpty()) {
+	        throw new IllegalArgumentException("Name cannot be empty");
+	    }
+	    if (updateContactDto.telephoneNumber() == null || updateContactDto.telephoneNumber().isEmpty()) {
+	        throw new IllegalArgumentException("Telephone cannot be empty");
+	    }
+
+	    // Atualiza os dados
+	    contact.setName(updateContactDto.name());
+	    contact.setImageUrl(updateContactDto.imageUrl());
+	    contact.setTelephoneNumber(updateContactDto.telephoneNumber());
+	    contact.setContactDescription(updateContactDto.contactDescription());
+
+	    contact = contactRepository.save(contact);
+
+	    return new ShowContactDto(
+	        contact.getId_contact(), 
+	        contact.getName(), 
+	        contact.getImageUrl(), 
+	        contact.getTelephoneNumber(), 
+	        contact.getContactDescription()
+	    );
 	}
+
 }

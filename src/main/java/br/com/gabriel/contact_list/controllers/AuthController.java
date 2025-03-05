@@ -33,35 +33,60 @@ public class AuthController {
 	
 	@PostMapping("/register")
 	public ResponseEntity<String> register(@RequestBody RegisterUserDto registerUserDto) {
-		if (userRepository.findByEmail(registerUserDto.email()) != null) {
-			return ResponseEntity.badRequest().body("Email já cadastrado!");
-		}
+	    // Validação de campos vazios
+	    if (registerUserDto.username() == null || registerUserDto.username().trim().isEmpty() ||
+	        registerUserDto.email() == null || registerUserDto.email().trim().isEmpty() || 
+	        registerUserDto.password() == null || registerUserDto.password().trim().isEmpty()) {
+	        return ResponseEntity.status(400).body("Username, email, and password cannot be empty");
+	    }
 
-		String encryptedPassword = passwordEncoder.encode(registerUserDto.password());
-		User newUser = new User(
-				registerUserDto.username(),
-				registerUserDto.email(),
-				encryptedPassword
-		);
-		
-		userRepository.save(newUser);
-		return ResponseEntity.ok("Usuário registrado com sucesso!");
+	    try {
+	        // Verifica se o e-mail já está cadastrado
+	        if (userRepository.findByEmail(registerUserDto.email()) != null) {
+	            return ResponseEntity.badRequest().body("Email já cadastrado!");
+	        }
+
+	        // Criptografa a senha
+	        String encryptedPassword = passwordEncoder.encode(registerUserDto.password());
+
+	        // Cria e salva o novo usuário
+	        User newUser = new User(
+	            registerUserDto.username(),
+	            registerUserDto.email(),
+	            encryptedPassword
+	        );
+	        userRepository.save(newUser);
+
+	        return ResponseEntity.ok("Usuário registrado com sucesso!");
+	    } catch (Exception e) {
+	        return ResponseEntity.status(500).body("Erro ao registrar usuário: " + e.getMessage());
+	    }
 	}
+
 	
 	@PostMapping("/login")
 	public ResponseEntity<LoginResponseDto> login(@RequestBody AuthenticationDto authDto) {
-	    var user = userRepository.findByEmail(authDto.email());
-
-	    if (user == null) {
-	        return ResponseEntity.status(404).body(new LoginResponseDto("User not found"));
+	    if (authDto.email() == null || authDto.email().trim().isEmpty() ||
+	        authDto.password() == null || authDto.password().trim().isEmpty()) {
+	        return ResponseEntity.status(400).body(new LoginResponseDto("Email and password cannot be empty"));
 	    }
-	    
-	    var authenticationToken = new UsernamePasswordAuthenticationToken(authDto.email(), authDto.password());
-	    var auth = authenticationManager.authenticate(authenticationToken);
-	    
-	    var token = tokenService.generateToken((User) auth.getPrincipal());
 
-	    return ResponseEntity.ok(new LoginResponseDto(token));
+	    var user = userRepository.findByEmail(authDto.email());
+	    
+	    if (user == null) {
+	        return ResponseEntity.status(404).body(new LoginResponseDto("Invalid email or password"));
+	    }
+
+	    try {
+	        var authenticationToken = new UsernamePasswordAuthenticationToken(authDto.email(), authDto.password());
+	        var auth = authenticationManager.authenticate(authenticationToken);
+	        var token = tokenService.generateToken((User) auth.getPrincipal());
+
+	        return ResponseEntity.ok(new LoginResponseDto(token));
+	    } catch (Exception e) {
+	        return ResponseEntity.status(401).body(new LoginResponseDto("Invalid email or password"));
+	    }
 	}
+
 
 }
