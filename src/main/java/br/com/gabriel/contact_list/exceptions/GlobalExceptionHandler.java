@@ -22,4 +22,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleNoContactsFound(NoContactByIdNotFoundException ex) {
     	return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
+    
+    @ExceptionHandler(MissingFieldException.class)
+    public ResponseEntity<String> handleMissingFieldException(MissingFieldException ex) {
+    	return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 }

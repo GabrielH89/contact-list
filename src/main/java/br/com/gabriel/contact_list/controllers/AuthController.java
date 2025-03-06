@@ -11,6 +11,7 @@ import br.com.gabriel.contact_list.dtos.AuthenticationDto;
 import br.com.gabriel.contact_list.dtos.LoginResponseDto;
 import br.com.gabriel.contact_list.dtos.RegisterUserDto;
 import br.com.gabriel.contact_list.entitites.User;
+import br.com.gabriel.contact_list.exceptions.MissingFieldException;
 import br.com.gabriel.contact_list.repositories.UserRepository;
 import br.com.gabriel.contact_list.security.TokenService;
 
@@ -31,45 +32,35 @@ public class AuthController {
 	@Autowired
 	private TokenService tokenService;
 	
+	//Função que pega o excpetion de MissingFieldExcpetion para aplicar nas funções abaixo
+	private void validateFields(String message, String... fields) {
+		for(String field : fields) {
+			if(field == null || field.trim().isEmpty()) {
+				throw new MissingFieldException(message);
+			}
+		}
+	}
+	
 	@PostMapping("/register")
 	public ResponseEntity<String> register(@RequestBody RegisterUserDto registerUserDto) {
 	    // Validação de campos vazios
-	    if (registerUserDto.username() == null || registerUserDto.username().trim().isEmpty() ||
-	        registerUserDto.email() == null || registerUserDto.email().trim().isEmpty() || 
-	        registerUserDto.password() == null || registerUserDto.password().trim().isEmpty()) {
-	        return ResponseEntity.status(400).body("Username, email, and password cannot be empty");
-	    }
+		validateFields("Name, email and password cannot be empty", registerUserDto.username(), registerUserDto.email(), registerUserDto.password());
 
-	    try {
-	        // Verifica se o e-mail já está cadastrado
-	        if (userRepository.findByEmail(registerUserDto.email()) != null) {
-	            return ResponseEntity.badRequest().body("Email já cadastrado!");
-	        }
+        if (userRepository.findByEmail(registerUserDto.email()) != null) {
+            return ResponseEntity.badRequest().body("Email já cadastrado!");
+        }
 
-	        // Criptografa a senha
-	        String encryptedPassword = passwordEncoder.encode(registerUserDto.password());
+        String encryptedPassword = passwordEncoder.encode(registerUserDto.password());
+        User newUser = new User(registerUserDto.username(), registerUserDto.email(), encryptedPassword);
+        userRepository.save(newUser);
 
-	        // Cria e salva o novo usuário
-	        User newUser = new User(
-	            registerUserDto.username(),
-	            registerUserDto.email(),
-	            encryptedPassword
-	        );
-	        userRepository.save(newUser);
-
-	        return ResponseEntity.ok("Usuário registrado com sucesso!");
-	    } catch (Exception e) {
-	        return ResponseEntity.status(500).body("Erro ao registrar usuário: " + e.getMessage());
-	    }
+        return ResponseEntity.ok("Usuário registrado com sucesso!");
 	}
 
 	
 	@PostMapping("/login")
 	public ResponseEntity<LoginResponseDto> login(@RequestBody AuthenticationDto authDto) {
-	    if (authDto.email() == null || authDto.email().trim().isEmpty() ||
-	        authDto.password() == null || authDto.password().trim().isEmpty()) {
-	        return ResponseEntity.status(400).body(new LoginResponseDto("Email and password cannot be empty"));
-	    }
+	    validateFields("Email and password cannot be empty", authDto.email(), authDto.password());
 
 	    var user = userRepository.findByEmail(authDto.email());
 	    
@@ -87,6 +78,4 @@ public class AuthController {
 	        return ResponseEntity.status(401).body(new LoginResponseDto("Invalid email or password"));
 	    }
 	}
-
-
 }

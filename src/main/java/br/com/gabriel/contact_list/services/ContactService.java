@@ -11,6 +11,7 @@ import br.com.gabriel.contact_list.dtos.ShowContactDto;
 import br.com.gabriel.contact_list.dtos.UpdateContactDto;
 import br.com.gabriel.contact_list.entitites.Contact;
 import br.com.gabriel.contact_list.entitites.User;
+import br.com.gabriel.contact_list.exceptions.MissingFieldException;
 import br.com.gabriel.contact_list.exceptions.NoContactByIdNotFoundException;
 import br.com.gabriel.contact_list.exceptions.NoContactsFoundException;
 import br.com.gabriel.contact_list.repositories.ContactRepository;
@@ -25,15 +26,16 @@ public class ContactService {
 	@Autowired
 	private ContactRepository contactRepository;
 	
+	private void validateFields(String message, String... fields) {
+		for(String field : fields) {
+			if(field == null || field.trim().isEmpty()) {
+				throw new MissingFieldException(message);
+			}
+		}
+	}
+	
 	public ShowContactDto createContact(CreateContactDto createContactDto, HttpServletRequest request) {
-	    if (createContactDto.name() == null || createContactDto.name().isEmpty()) {
-	        throw new IllegalArgumentException("Name cannot be empty");
-	    }
-
-	    if (createContactDto.telephoneNumber() == null || createContactDto.telephoneNumber().isEmpty()) {
-	        throw new IllegalArgumentException("Telephone number cannot be empty");
-	    }
-
+		validateFields("Name and telephoneNumber cannot be empty", createContactDto.name(), createContactDto.telephoneNumber());
 	    // Extrai o ID do usuário do contexto da requisição
 	    long userId = (Long) request.getAttribute("userId");
 
@@ -116,15 +118,8 @@ public class ContactService {
 	    if (contact.getUser().getId_user() != userId) {
 	        throw new SecurityException("You are not authorized to update this contact");
 	    }
-
-	    // Validações
-	    if (updateContactDto.name() == null || updateContactDto.name().isEmpty()) {
-	        throw new IllegalArgumentException("Name cannot be empty");
-	    }
-	    if (updateContactDto.telephoneNumber() == null || updateContactDto.telephoneNumber().isEmpty()) {
-	        throw new IllegalArgumentException("Telephone cannot be empty");
-	    }
-
+	    
+	    validateFields("Name and telephoneNumber cannot be empty", updateContactDto.name(), updateContactDto.telephoneNumber());
 	    // Atualiza os dados
 	    contact.setName(updateContactDto.name());
 	    contact.setImageUrl(updateContactDto.imageUrl());
